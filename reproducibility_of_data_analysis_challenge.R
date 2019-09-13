@@ -1,3 +1,7 @@
+# Reproducibility Data Challenge
+# Octopus Team
+
+
 rm(list=ls())
 
 library(tidyverse)
@@ -5,7 +9,7 @@ library(RMKdiscrete)
 library(ggplot2)
 
 # set work dir to your dir
-# setwd("C:/Users/edwar/Documents/MBL2019/BSD-QBio5/tutorials/reproducibility")
+#setwd("C:/Users/nbaughan/Documents/MBL2019/BSD-QBio5/tutorials/reproducibility")
 
 # Load data
 # input the data
@@ -22,4 +26,13 @@ p_spider <- p_spider + geom_line(aes(y=spider_poisson),color="darkred") +
   geom_point(aes(y=C_count_of_boards_with_k_spiders/all_spider),color="darkblue") +
   scale_y_continuous(sec.axis = sec_axis(~.*all_spider, name = "spider_data"))
 p_spider 
+
+
+# Plot the Poisson with same mean as Sowbug counts
+# Calculate mean of Sowbug count
+mean_snowbug <- mean(bug_data$C_count_of_boards_with_k_sowbugs*bug_data$k_number_of_arthropods)
+# Plot the poisson
+snowbug_poisson <- dpois(0:17,lambda = 1/mean_snowbug)
+
+
 
