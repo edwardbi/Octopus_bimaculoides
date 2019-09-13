@@ -15,6 +15,8 @@ library(ggplot2)
 # input the data
 bug_data <- read_csv("./data/cole_arthropod_data_1946.csv")
 
+
+
 # Plot the Poisson distribution with the same mean as spider counts
 # 1) calculate mean of spider count
 mean_spider <- mean(bug_data$C_count_of_boards_with_k_spiders)
@@ -49,5 +51,20 @@ p_snowbug <- p_snowbug + geom_line(aes(y=snowbug_poisson),color="darkred") +
   geom_point(aes(y=C_count_of_boards_with_k_sowbugs/all_snowbugs),color="darkblue") +
   scale_y_continuous(sec.axis = sec_axis(~.*all_snowbugs, name = "snowbug_data"))
 p_snowbug
+
+# Plot the Poisson distribution with the same mean as weevil counts
+# 1) calculate mean of count
+bug_data_2 <- read_csv("mitchell_weevil_egg_data_1975.csv")
+mean_weevil <- mean(bug_data_2$C_count_of_beans_with_k_eggs*bug_data_2$k_number_of_eggs)
+all_weevil <- sum(bug_data_2$C_count_of_beans_with_k_eggs)
+# 2) plot the poisson
+weevil_poisson <- dpois(0:4,lambda = 1/mean_weevil)
+weevil_poisson_LGP <- dLGP(x=0:4,theta=1/mean_weevil,lambda=0)
+p_weevil <- ggplot(bug_data_2,aes(x=bug_data_2$k_number_of_eggs))
+p_weevil <- p_weevil + geom_line(aes(y=weevil_poisson),color="darkred") + 
+  geom_line(aes(y=weevil_poisson_LGP),color="darkgreen") +
+  geom_point(aes(y=bug_data_2$C_count_of_beans_with_k_eggs/all_weevil),color="darkblue") +
+  scale_y_continuous(sec.axis = sec_axis(~.*all_weevil, name = "weevil_data"))
+p_weevil
 
 
