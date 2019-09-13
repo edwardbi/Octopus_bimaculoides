@@ -8,63 +8,100 @@ library(tidyverse)
 library(RMKdiscrete)
 library(ggplot2)
 
-# set work dir to your dir
-#setwd("C:/Users/nbaughan/Documents/MBL2019/BSD-QBio5/tutorials/reproducibility")
+# Set work dir to your dir
+# setwd("C:/Users/nbaughan/Documents/MBL2019/BSD-QBio5/tutorials/reproducibility")
 
 # Load data
-# input the data
+# Input the data
 bug_data <- read_csv("./data/cole_arthropod_data_1946.csv")
+egg_data <- read_csv("./data/mitchell_weevil_egg_data_1975.csv")
 
+# Split the data in different tibbles, change colunm names and set lambda2 value
+spider_data <- bug_data %>% select(k_number_of_arthropods, C_count_of_boards_with_k_spiders) %>% 
+  rename(numbers = k_number_of_arthropods, times = C_count_of_boards_with_k_spiders)
+lambda2.spider <- 0
 
+sowbug_data <- bug_data %>% select(k_number_of_arthropods, C_count_of_boards_with_k_sowbugs) %>% 
+  rename(numbers = k_number_of_arthropods, times = C_count_of_boards_with_k_sowbugs)
+lambda2.sowbug <- 0.53214
 
-# Plot the Poisson distribution with the same mean as spider counts
-# 1) calculate mean of spider count
-mean_spider <- mean(bug_data$C_count_of_boards_with_k_spiders)
-# 2) plot the poisson
-spider_poisson <- dpois(0:17,lambda = 1/mean_spider)
-all_spider = sum(bug_data$C_count_of_boards_with_k_spiders)
-p_spider <- ggplot(bug_data,aes(x=k_number_of_arthropods))
-p_spider <- p_spider + geom_line(aes(y=spider_poisson),color="darkred") + 
-  geom_point(aes(y=C_count_of_boards_with_k_spiders/all_spider),color="darkblue") +
-  scale_y_continuous(sec.axis = sec_axis(~.*all_spider, name = "spider_data"))
-p_spider 
+egg_data <- egg_data %>% rename(numbers = k_number_of_eggs, times = C_count_of_beans_with_k_eggs)
+lambda2.egg <- 0 # Because the data looks like those of spider,  we chose lambda2 = 0 to test
 
+# Write a function to plot the data and poisson distribution in the same mean
+overlay_poisson<- function(count.data, sample.name){
+  
+  # Get the mean of the observations  
+  mean.number <- mean(count.data$numbers * count.data$times)
+  
+  # Get the poisson distribution in the same mean  
+  number.max <- length(count.data$numbers) - 1
+  count.data$poisson.distri <- dpois(0:number.max,lambda = 1/mean.number)
+  
+  # Get the propotion of "times" 
+  sum.times <- sum(count.data$times)
+  count.data$time.proportion <- count.data$times / sum.times
+  
+  # Plot the observations and Poisson distribution
+  p.observation.poisson <- ggplot(count.data, aes(x = numbers)) +
+    geom_point(aes(y = time.proportion), color = "darkblue") +
+    geom_line(aes(y = poisson.distri), color = "darkred", linetype='dashed', alpha = 0.5) +
+    scale_y_continuous(sec.axis = sec_axis(~.*sum.times, name = "Times to Have a Certain Count")) + 
+    ggtitle(paste("Fit The Count of ", sample.name, " to Poisson Distribution")) +
+    xlab("Count") + 
+    ylab("Probability") +
+    theme(plot.title = element_text(hjust = 0.5))
+  
+  # Return the plot
+  return(p.observation.poisson)
+}
 
-# Plot the Poisson with same mean as Sowbug counts
-# Calculate mean of Sowbug count
-mean_snowbug <- mean(bug_data$C_count_of_boards_with_k_sowbugs*bug_data$k_number_of_arthropods)
-# Plot the poisson
-snowbug_poisson <- dpois(0:17,lambda = 1/mean_snowbug)
+# Write a function to add the LGP curve to the poisson_data plot
+overlay_LGP<- function(count.data, p.observation.poisson, lambda2, sample.name){
+  
+  # Get the lambda1 and lambda2  
+  mean.number <- mean(count.data$numbers * count.data$times)
+  lambda1 <- mean.number * (1 - lambda2)
+  
+  # Get the LGP based on the indicated lambda  
+  number.max <- length(count.data$numbers) - 1
+  LGP.distri <- dLGP(x=0:number.max,theta=1/lambda1,lambda=lambda2)
+  
+  # Plot the LGP on the previous plot
+  p.observation.poisson.LGP <- p.observation.poisson +
+    geom_line(aes(y = LGP.distri), color = "darkgreen", linetype=3, alpha = 0.7) +
+    ggtitle(paste("Fit The Count of ", sample.name, " to Poisson Distribution and LGP")) 
 
-lambda_1 <- (mean_snowbug)*(1-0.53214)
-snowbug_poisson_LGP <- dLGP(x=0:17,theta=1/lambda_1,lambda=0.53214)
-all_snowbugs = sum(bug_data$C_count_of_boards_with_k_sowbugs)
-p_snowbug <- ggplot(bug_data,aes(x=k_number_of_arthropods))
+  # Return the plot
+  return(p.observation.poisson.LGP)
+}
 
-p_snowbug1 <- p_snowbug1 + geom_line(aes(y=snowbug_poisson),color="darkred") + 
-  geom_point(aes(y=C_count_of_boards_with_k_sowbugs/all_snowbugs),color="darkblue") +
-  scale_y_continuous(sec.axis = sec_axis(~.*all_snowbugs, name = "snowbug_data"))
-p_snowbug1
+# Plot data and Poisson distribution for the three datasets
+p.spider.poisson <- overlay_poisson(spider_data, "Spider")
+p.spider.poisson
 
-p_snowbug <- p_snowbug + geom_line(aes(y=snowbug_poisson),color="darkred") + 
-  geom_line(aes(y=snowbug_poisson_LGP),color="darkgreen") +
-  geom_point(aes(y=C_count_of_boards_with_k_sowbugs/all_snowbugs),color="darkblue") +
-  scale_y_continuous(sec.axis = sec_axis(~.*all_snowbugs, name = "snowbug_data"))
-p_snowbug
+p.sowbug.poisson <- overlay_poisson(sowbug_data, "Sowbug")
+p.sowbug.poisson
 
-# Plot the Poisson distribution with the same mean as weevil counts
-# 1) calculate mean of count
-bug_data_2 <- read_csv("mitchell_weevil_egg_data_1975.csv")
-mean_weevil <- mean(bug_data_2$C_count_of_beans_with_k_eggs*bug_data_2$k_number_of_eggs)
-all_weevil <- sum(bug_data_2$C_count_of_beans_with_k_eggs)
-# 2) plot the poisson
-weevil_poisson <- dpois(0:4,lambda = 1/mean_weevil)
-weevil_poisson_LGP <- dLGP(x=0:4,theta=1/mean_weevil,lambda=0)
-p_weevil <- ggplot(bug_data_2,aes(x=bug_data_2$k_number_of_eggs))
-p_weevil <- p_weevil + geom_line(aes(y=weevil_poisson),color="darkred") + 
-  geom_line(aes(y=weevil_poisson_LGP),color="darkgreen") +
-  geom_point(aes(y=bug_data_2$C_count_of_beans_with_k_eggs/all_weevil),color="darkblue") +
-  scale_y_continuous(sec.axis = sec_axis(~.*all_weevil, name = "weevil_data"))
-p_weevil
+p.egg.poisson <- overlay_poisson(egg_data, "Eggs")
+p.egg.poisson
+
+# Add LGP curve to the plot
+
+p.spider.poisson.LGP <- overlay_LGP(spider_data, p.spider.poisson, lambda2.spider, "Spider")
+p.spider.poisson.LGP
+
+p.sowbug.poisson.LGP <- overlay_LGP(sowbug_data, p.sowbug.poisson, lambda2.sowbug, "Sowbug")
+p.sowbug.poisson.LGP
+
+p.egg.poisson.LGP <- overlay_LGP(egg_data, p.egg.poisson, lambda2.egg, "Eggs")
+p.egg.poisson.LGP
+
+# Seems like the lambda2 = 0 doesn't fit the data. Try lambda2 = 0.5
+lambda2.egg.2 <- 0.5
+p.egg.poisson.LGP.2 <- overlay_LGP(egg_data, p.egg.poisson, lambda2.egg.2, "Eggs")
+p.egg.poisson.LGP.2
+
+# This seems to be better, so they lay eggs in a group.
 
 
