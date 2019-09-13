@@ -34,6 +34,9 @@ mean_snowbug <- mean(bug_data$C_count_of_boards_with_k_sowbugs*bug_data$k_number
 # Plot the poisson
 snowbug_poisson <- dpois(0:17,lambda = 1/mean_snowbug)
 
-
+lambda_1 <- (mean_snowbug)*(1-0.53214)
+snowbug_poisson_LGP <- dLGP(x=0:17,theta=1/lambda_1,lambda=0.53214)
+all_snowbugs = sum(bug_data$C_count_of_boards_with_k_sowbugs)
+p_snowbug <- ggplot(bug_data,aes(x=k_number_of_arthropods))
 
 
