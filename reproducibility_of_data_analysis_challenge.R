@@ -36,3 +36,4 @@ snowbug_poisson <- dpois(0:17,lambda = 1/mean_snowbug)
 
 
 
+
