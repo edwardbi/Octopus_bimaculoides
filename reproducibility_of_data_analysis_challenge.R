@@ -102,6 +102,6 @@ lambda2.egg.2 <- 0.5
 p.egg.poisson.LGP.2 <- overlay_LGP(egg_data, p.egg.poisson, lambda2.egg.2, "Eggs")
 p.egg.poisson.LGP.2
 
-# We thought that neither of them fit pretty well, so we voted and decided to choose lambda2 = 0
+# We thought that neither of them fit pretty well, so we voted and decided to choose lambda2 = 0. They lay eggs randomly.
 
 
