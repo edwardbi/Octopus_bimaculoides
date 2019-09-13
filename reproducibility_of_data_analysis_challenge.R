@@ -1,6 +1,6 @@
 # Reproducibility Data Challenge
 # Octopus Team
-
+#Ahmed's modification!
 
 rm(list=ls())
 
@@ -38,6 +38,11 @@ lambda_1 <- (mean_snowbug)*(1-0.53214)
 snowbug_poisson_LGP <- dLGP(x=0:17,theta=1/lambda_1,lambda=0.53214)
 all_snowbugs = sum(bug_data$C_count_of_boards_with_k_sowbugs)
 p_snowbug <- ggplot(bug_data,aes(x=k_number_of_arthropods))
+
+p_snowbug1 <- p_snowbug1 + geom_line(aes(y=snowbug_poisson),color="darkred") + 
+  geom_point(aes(y=C_count_of_boards_with_k_sowbugs/all_snowbugs),color="darkblue") +
+  scale_y_continuous(sec.axis = sec_axis(~.*all_snowbugs, name = "snowbug_data"))
+p_snowbug1
 
 p_snowbug <- p_snowbug + geom_line(aes(y=snowbug_poisson),color="darkred") + 
   geom_line(aes(y=snowbug_poisson_LGP),color="darkgreen") +
